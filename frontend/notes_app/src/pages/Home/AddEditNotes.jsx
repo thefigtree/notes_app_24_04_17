@@ -2,10 +2,37 @@ import React, { useState } from "react";
 import TagInput from "../../components/Input/TagInput";
 import { MdClose } from "react-icons/md";
 
-const AddEditNotes = ({ onClose }) => {
+const AddEditNotes = ({ noteData, type, onClose }) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [tags, setTags] = useState([]);
+  const [error, setError] = useState(null);
+
+  //노트 추가하기
+  const addNewNote = async () => {};
+
+  // 노트 제거하기
+  const editNote = async () => {};
+
+  const handleAddNote = () => {
+    if (!title) {
+      setError("제목을 입력하시오.");
+      return;
+    }
+
+    if (!content) {
+      setError("컨텐츠를 입력하시오.");
+      return;
+    }
+
+    setError("");
+
+    if (type === "edit") {
+      editNote();
+    } else {
+      addNewNote();
+    }
+  };
 
   return (
     <div className="relative">
@@ -48,7 +75,12 @@ const AddEditNotes = ({ onClose }) => {
         <TagInput tags={tags} setTags={setTags}></TagInput>
       </div>
 
-      <button className="btn_primary font-medium mt-5 p-3" onClick={() => {}}>
+      {error && <p className="text-red-500 text-xs pt-4">{error}</p>}
+
+      <button
+        className="btn_primary font-medium mt-5 p-3"
+        onClick={handleAddNote}
+      >
         Add
       </button>
     </div>
