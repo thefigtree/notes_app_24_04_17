@@ -3,10 +3,16 @@ import TagInput from "../../components/Input/TagInput";
 import { MdClose } from "react-icons/md";
 import axiosInstance from "../../utils/axiosInstance";
 
-const AddEditNotes = ({ noteData, type, getAllNotes, onClose }) => {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [tags, setTags] = useState([]);
+const AddEditNotes = ({
+  noteData,
+  type,
+  getAllNotes,
+  onClose,
+  showToastMessage,
+}) => {
+  const [title, setTitle] = useState(noteData?.title || "");
+  const [content, setContent] = useState(noteData?.content || "");
+  const [tags, setTags] = useState(noteData?.tags || []);
   const [error, setError] = useState(null);
 
   //노트 추가하기
@@ -19,6 +25,7 @@ const AddEditNotes = ({ noteData, type, getAllNotes, onClose }) => {
       });
 
       if (response.data && response.data.note) {
+        showToastMessage("Note Added Successfully");
         getAllNotes();
         onClose();
       }
@@ -33,8 +40,32 @@ const AddEditNotes = ({ noteData, type, getAllNotes, onClose }) => {
     }
   };
 
-  // 노트 제거하기
-  const editNote = async () => {};
+  // 노트 편집하기
+  const editNote = async () => {
+    const noteId = noteData._id;
+
+    try {
+      const response = await axiosInstance.put("/edit-note/" + noteId, {
+        title,
+        content,
+        tags,
+      });
+
+      if (response.data && response.data.note) {
+        showToastMessage("Note Updated Successfully");
+        getAllNotes();
+        onClose();
+      }
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        setError(error.response.data.message);
+      }
+    }
+  };
 
   const handleAddNote = () => {
     if (!title) {
@@ -103,7 +134,7 @@ const AddEditNotes = ({ noteData, type, getAllNotes, onClose }) => {
         className="btn_primary font-medium mt-5 p-3"
         onClick={handleAddNote}
       >
-        Add
+        {type === "edit" ? "Update" : "Add"}
       </button>
     </div>
   );
