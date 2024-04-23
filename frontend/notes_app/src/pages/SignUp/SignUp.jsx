@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import Navbar from "../../components/Navbar";
 import PasswordInput from "../../components/Input/PasswordInput ";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { validateEmail } from "../../utils/helper";
+import axiosInstance from "../../utils/axiosInstance";
 
 const SignUp = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -31,6 +34,36 @@ const SignUp = () => {
     setError("");
 
     //회원가입 API
+    try {
+      const response = await axiosInstance.post("/create-account", {
+        fullName: name,
+        email: email,
+        password: password,
+      });
+
+      // 회원가입 API 응답
+
+      if (response.data && response.data.ㄷㄱ객) {
+        setError(response.data.message);
+        return;
+      }
+
+      if (response.data && response.data.accessToken) {
+        localStorage.setItem("token", response.data.accessToken);
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      // 로그인 에러
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        setError(error.response.data.message);
+      } else {
+        setError("An Unexpected Error Occured. Please Try Again.");
+      }
+    }
   };
 
   return (
