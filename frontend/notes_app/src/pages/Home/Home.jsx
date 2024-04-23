@@ -9,6 +9,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import ToastMessage from "../../components/ToastMessage/ToastMessage";
 import EmptyCard from "../../components/EmptyCard/EmptyCard";
 import AddNotesImg from "../../assets/images/addnotes.png";
+import NoDataImg from "../../assets/images/nodatas.webp";
 
 const Home = () => {
   const [openAddEditModal, setOpenAddEditModal] = useState({
@@ -25,6 +26,8 @@ const Home = () => {
 
   const [userInfo, setUserInfo] = useState(null);
   const [allNotes, setAllNotes] = useState([]);
+
+  const [isSearch, setIsSearch] = useState(false);
 
   const navigate = useNavigate();
 
@@ -102,6 +105,47 @@ const Home = () => {
     }
   };
 
+  // 노트 찾기
+  const onSearchNote = async (query) => {
+    try {
+      const response = await axiosInstance.get("/search-notes", {
+        params: { query },
+      });
+
+      if (response.data && response.data.notes) {
+        setIsSearch(true);
+        setAllNotes(response.data.notes);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setIsSearch(false);
+    getAllNotes();
+  };
+
+  // 고정핀
+  const updateIsPinned = async (noteData) => {
+    const noteId = noteData._id;
+
+    try {
+      const response = await axiosInstance.put(
+        "/update-note-pinned/" + noteId,
+        {
+          isPinned: !noteData.isPinned,
+        }
+      );
+
+      if (response.data && response.data.note) {
+        showToastMessage("Note Updated Successfully");
+        getAllNotes();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
   useEffect(() => {
     getUserInfo();
     getAllNotes();
@@ -110,7 +154,11 @@ const Home = () => {
 
   return (
     <>
-      <Navbar userInfo={userInfo}></Navbar>
+      <Navbar
+        userInfo={userInfo}
+        onSearchNote={onSearchNote}
+        handleClearSearch={handleClearSearch}
+      ></Navbar>
 
       <div className="container mx-auto">
         {allNotes.length > 0 ? (
@@ -125,15 +173,17 @@ const Home = () => {
                 isPinned={item.isPinned}
                 onEdit={() => handleEdit(item)}
                 onDelete={() => deleteNotes(item)}
-                onPinNote={() => {}}
+                onPinNote={() => updateIsPinned(item)}
               ></NoteCard>
             ))}
           </div>
         ) : (
           <EmptyCard
-            imgSrc={AddNotesImg}
+            imgSrc={isSearch ? NoDataImg : AddNotesImg}
             message={
-              "첫 노트를 만들어 주세요. 우측하단 플러스 버튼을 눌러주세요."
+              isSearch
+                ? "Omg! 노트를 찾을 수 없어요."
+                : "첫 노트를 만들어 주세요. 우측하단 플러스 버튼을 눌러주세요."
             }
           ></EmptyCard>
         )}
